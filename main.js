@@ -176,16 +176,15 @@ HANDLER = {
         "Left": (data) => {
             let { key, type, lowest_parenthesis, depth, selected, parameters } = data;
             if (selected instanceof SimpleFraction) {
-                if (selected.length <= 0) {
-                    
-                } else {
-                    KEYBOARD.special_selection -= 1;
+                KEYBOARD.special_selection -= 1;
 
-                    if (KEYBOARD.special_selection < 0) {
+                if (KEYBOARD.special_selection < 0) {
+                    if (KEYBOARD.selected[depth] == 0) {
+                        KEYBOARD.special_selection = 0;
+                    } else {
                         KEYBOARD.selected[depth] -= 1;
                         KEYBOARD.special_selection = 1;
                     }
-
                 }
             }
 
@@ -199,8 +198,12 @@ HANDLER = {
         "Right": (data) => {
             let { key, type, lowest_parenthesis, depth, selected, parameters } = data;
             if (selected instanceof SimpleFraction) {
-                if (selected.length < KEYBOARD.special_selection) {
-                    
+                if (selected.length <= KEYBOARD.special_selection) {
+                    if (++KEYBOARD.selected[depth] >= lowest_parenthesis.value.length) {
+                        KEYBOARD.selected[depth] -= 1;
+                    } else {
+                        KEYBOARD.special_selection = 1;
+                    }
                 } else {
                     KEYBOARD.special_selection += 1;
                 }
@@ -215,7 +218,7 @@ EQUATION = { left: new Expression(), right: new Expression(), active: "left" };
 KEYBOARD = {
     "active_expression": "left",
     "selected": [0],
-    "special_selection": -1,
+    "special_selection": 0,
     "encoding": "0123456789()^*/+-=".split("").concat(["FRACTION", "SOLVE", "DELETE", "CLEAR", "LEFT", "RIGHT"]),
     "selectedElement": () => {
         let lowest_parenthesis = EQUATION[EQUATION.active];
