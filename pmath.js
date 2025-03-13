@@ -98,9 +98,7 @@ class Expression {
         //if (index !== -1) { return [index]; }
 
         //Multiplication x Division
-        index = this.value.findIndex(
-            (element) => element instanceof Operation && element.type >= 2
-        );
+        index = this.value.findIndex((element) => element instanceof Operation && element.type >= 2);
         if (index !== -1) {
             return [index];
         }
@@ -112,17 +110,11 @@ class Expression {
         }
 
         //Null Operation (When there is a single term in a parenthesis)
-        if (this.value.length === 1) {
-            return [];
-        }
+        return [];
     }
 
     step() {
         let location = this.next();
-
-        if (location.length === 0) {
-            return this.toString();
-        }
 
         let [operation, parent, depth] = this.get(location);
 
@@ -135,37 +127,43 @@ class Expression {
         let x = parent.value[location[depth] - 1];
         let y = parent.value[location[depth] + 1];
 
-        let result;
+        if (x instanceof SimpleFraction && y instanceof SimpleFraction) {
+            let result;
 
-        switch (operation.type) {
-            case 0: //Addition
-                result = x.add(y);
-                break;
+            switch (operation.type) {
+                case 0: //Addition
+                    result = x.add(y);
+                    break;
 
-            case 1: //Subtraction
-                result = x.sub(y);
-                break;
+                case 1: //Subtraction
+                    result = x.sub(y);
+                    break;
 
-            case 2: //Multiplication
-                result = x.mul(y);
-                break;
+                case 2: //Multiplication
+                    result = x.mul(y);
+                    break;
 
-            case 3: //Division
-                result = x.div(y);
-                break;
+                case 3: //Division
+                    result = x.div(y);
+                    break;
 
-            case 4: //Exponent (Not Implmented)
-                break;
-                result = x.exp(y);
+                case 4: //Exponent (Not Implmented)
+                    break;
+                    result = x.exp(y);
 
-            default:
-                break;
+                default:
+                    break;
+            }
+
+            parent.value.splice(location[depth] - 1, 2);
+            parent.value[location[depth] - 1] = new SimpleFraction(result);
+            return this.toString();
+
+        } else {
+            parent.value.splice(location[depth] - 1, 2);
+            parent.value[location[depth] - 1] = "Error";
+            return "Error";
         }
-
-        parent.value.splice(location[depth] - 1, 2);
-        parent.value[location[depth] - 1] = new SimpleFraction(result);
-
-        return this.toString();
     }
 }
 
@@ -190,6 +188,7 @@ class Operation {
         this.name = "Operation";
         this.type = typeof type === "string" ? Operation.encoding.indexOf(type) : type;
         this.invisible = invisible;
+        this.length = 1;
     }
 
     toString = () => this.invisible ? "" : " " + Operation.encoding[this.type] + " ";

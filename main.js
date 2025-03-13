@@ -46,7 +46,7 @@ HANDLER = {
             }
 
             else if (selected instanceof Operation) {
-                lowest_parenthesis.add(new SimpleFraction(key));
+                lowest_parenthesis.value.splice(KEYBOARD.selected[depth] + 1, 0, new SimpleFraction(key));
                 KEYBOARD.selected[depth] += 1;
             }
 
@@ -58,8 +58,15 @@ HANDLER = {
             }
 
             else if (selected instanceof Expression) {
-                KEYBOARD.press(13);
-                KEYBOARD.press(Number(type));
+                if (KEYBOARD.special_selection === 1) {
+                    KEYBOARD.press(13);
+                    KEYBOARD.press(Number(type));
+                } else {
+                    KEYBOARD.press(13);
+                    KEYBOARD.selected[depth] -= 1;
+                    lowest_parenthesis.value.splice(KEYBOARD.selected[depth], 0, new SimpleFraction(key));
+                    KEYBOARD.special_selection = 1;
+                }
             }
         },
         "Expression": (data) => {
@@ -125,13 +132,18 @@ HANDLER = {
             }
             
             else if (selected instanceof Operation) {
-                lowest_parenthesis.add(new Operation(key));
                 KEYBOARD.selected[depth] += 1;
+                lowest_parenthesis.value.splice(KEYBOARD.selected[depth], 0, new Operation(key));
             }
 
             else if (selected instanceof Expression) {
-                lowest_parenthesis.add(new Operation(key));
-                KEYBOARD.selected[depth] += 1;
+                if (KEYBOARD.special_selection === 0) {
+                    lowest_parenthesis.value.splice(KEYBOARD.selected[depth], 0, new Operation(key));
+                    KEYBOARD.selected[depth] += 1;
+                } else {
+                    KEYBOARD.selected[depth] += 1;
+                    lowest_parenthesis.value.splice(KEYBOARD.selected[depth], 0, new Operation(key));
+                }
             }
         },
         "ComplexFraction": (data) => {
@@ -219,7 +231,12 @@ HANDLER = {
         },
         "Left": (data) => {
             let { key, type, lowest_parenthesis, depth, selected, parameters } = data;
-            if (selected instanceof SimpleFraction) {
+            if (KEYBOARD.selected[depth] === 0 && KEYBOARD.special_selection == 0 && depth > 0) {
+                KEYBOARD.selected.pop();
+                KEYBOARD.special_selection = 0;
+            }
+
+            else if (selected instanceof SimpleFraction) {
                 KEYBOARD.special_selection -= 1;
 
                 if (KEYBOARD.special_selection < 0) {
@@ -249,7 +266,13 @@ HANDLER = {
         },
         "Right": (data) => {
             let { key, type, lowest_parenthesis, depth, selected, parameters } = data;
-            if (selected instanceof SimpleFraction) {
+
+            if (KEYBOARD.selected[depth] === lowest_parenthesis.value.length - 1 && KEYBOARD.special_selection == lowest_parenthesis.value[lowest_parenthesis.value.length - 1].length  && depth > 0) {
+                KEYBOARD.selected.pop();
+                KEYBOARD.special_selection = 1;
+            }
+
+            else if (selected instanceof SimpleFraction) {
                 if (selected.length <= KEYBOARD.special_selection) {
                     if (++KEYBOARD.selected[depth] >= lowest_parenthesis.value.length) {
                         KEYBOARD.selected[depth] -= 1;
@@ -263,6 +286,11 @@ HANDLER = {
                 }
             } else if (selected instanceof Operation) {
                 KEYBOARD.selected[depth] += 1;
+            } else if (selected instanceof Expression) {
+                if (KEYBOARD.special_selection === 0) {
+                    KEYBOARD.selected.push(0);
+                    KEYBOARD.special_selection = 0;
+                }
             }
         }
     }
