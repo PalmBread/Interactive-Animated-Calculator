@@ -167,20 +167,6 @@ class Expression {
     }
 }
 
-class Integer {
-    constructor(value) {
-        this.value = BigInt(value).toString(); // Store as a string
-    }
-
-    toString = () => this.value;
-    toNumber = () => Number(this.value);
-    add = (integer) => new Integer(BigInt(this.value) + BigInt(integer.value));
-    sub = (integer) => new Integer(BigInt(this.value) - BigInt(integer.value));
-    mul = (integer) => new Integer(BigInt(this.value) * BigInt(integer.value));
-    div = (integer) => new Integer(BigInt(this.value) / BigInt(integer.value));
-    exp = (integer) => new Integer(BigInt(this.value) ** BigInt(integer.value));
-}
-
 class Operation {
     static encoding = ["+", "-", "*", "/", "^"];
 
@@ -194,17 +180,57 @@ class Operation {
     toString = () => this.invisible ? "" : " " + Operation.encoding[this.type] + " ";
 }
 
+class Integer {
+    constructor(value) {
+        this.value = String(value); // Store as a string
+    }
+
+    toString = () => this.value;
+    toNumber = () => Number(this.value);
+    add = (integer) => new Integer(BigInt(this.value) + BigInt(integer.value));
+    sub = (integer) => new Integer(BigInt(this.value) - BigInt(integer.value));
+    mul = (integer) => new Integer(BigInt(this.value) * BigInt(integer.value));
+    div = (integer) => new Integer(BigInt(this.value) / BigInt(integer.value));
+    exp = (integer) => new Integer(BigInt(this.value) ** BigInt(integer.value));
+    con = (integer) => new Integer(this.value + integer.value);
+}
+
 class SimpleFraction {
     constructor(numerator, denominator = 1) {
         this.name = "SimpleFraction";
-
         this.numerator = new Integer(numerator);
         this.denominator = new Integer(denominator);
-
-        this.length = this.toString().length;
+        this.length = this.toString(false).length;
     }
 
-    toString = () => this.numerator.div(this.denominator).toString();
+    toString = (simplify = true) => {
+        let lowest = this;
+        if (simplify) { lowest = this.simplify(false); }
+        return (Number(lowest.numerator.value) / Number(lowest.denominator.value)).toString();
+    }
+
+    simplify(save = true) {
+        let a = this.numerator;
+        let b = this.denominator;
+
+        while(a.value.includes('.') || b.value.includes('.')) {
+            a = a.mul(new Integer(10));
+            b = b.mul(new Integer(10));
+        }
+
+        let gcd = PMath.gcd(a, b);
+
+        a = a.div(new Integer(gcd));
+        b = b.div(new Integer(gcd));
+
+        if (save) {
+            this.numerator = a;
+            this.denominator = b;
+            return this;
+        } else {
+            return new SimpleFraction(a.value, b.value);
+        }
+    }
 
     add(fraction) {
         let x = this.simplify(false);
@@ -256,29 +282,13 @@ class SimpleFraction {
         return new SimpleFraction(numerator, denominator).simplify();
     }
 
-    simplify(save = true) {
-        while (
-            !Number.isInteger(this.numerator.toNumber()) || 
-            !Number.isInteger(this.denominator.toNumber())
-        ) {
-            this.numerator = this.numerator.mul(new Integer(10));
-            this.denominator = this.denominator.mul(new Integer(10));
-        }
+    con(fraction) {
+        let x = this.simplify(false);
+        let y = fraction.simplify(false);
 
-        let gcd = PMath.gcd(this.numerator, this.denominator);
+        let numerator = x.numerator.con(y.numerator);
 
-        if (save) {
-            this.numerator = this.numerator.div(new Integer(gcd));
-            this.denominator = this.denominator.div(new Integer(gcd));
-            return this;
-        }
-
-        let result = new SimpleFraction(
-            new Integer(this.numerator.div(new Integer(gcd))),
-            new Integer(this.denominator.div(new Integer(gcd)))
-        );
-
-        return result;
+        return new SimpleFraction(numerator, 1).simplify();
     }
 }
 
@@ -291,3 +301,8 @@ class ComplexFraction {
 
     toString = () => `(${this.numerator} / ${this.denominator})`;
 }
+
+a = new SimpleFraction(2, 1);
+b = new SimpleFraction(3, 1);
+
+result = a.div(b);

@@ -1,12 +1,29 @@
-/*
-To Do:
- - Replace the atrocious amount of nesting in this code [while making sure it still works] <-- VERY IMPORTANT
-*/
-
-//Make buttons unselectable by Tab
 document.querySelectorAll('button').forEach(button => { button.setAttribute('tabindex', '-1'); });
 
 output = (input) => { document.getElementById("output").value = input; }
+
+function fixExpression(expression) {
+    if (expression.name === "Expression" && Array.isArray(expression.value)) {
+        expression.value.forEach(element => {
+            if (element && element.name === "Expression") {
+                fixExpression(element);
+            }
+        });
+
+        let i = 0;
+        while (i < expression.value.length - 1) {
+            let current = expression.value[i];
+            let next = expression.value[i + 1];
+            if (current && next && current.name === "SimpleFraction" && next.name === "SimpleFraction") {
+                let combined = current.con(next);
+                expression.value.splice(i, 2, combined);
+            } else {
+                i++;
+            }
+        }
+    }
+    return expression;
+}
 
 function solve(expression) {
     let result = "";
@@ -15,6 +32,8 @@ function solve(expression) {
     }
 
     let copy = expression.copy();
+
+    copy = fixExpression(copy);
 
     log("Problem:", copy.toString());
     log();
@@ -40,34 +59,12 @@ HANDLER = {
         "SimpleFraction": (data) => {
             let { key, type, lowest_parenthesis, depth, selected } = data;
             
-            if (selected === undefined) {
-                lowest_parenthesis.add(new SimpleFraction(key));
-                KEYBOARD.special_selection = 1;
+            if (KEYBOARD.selectedElement().selected !== undefined && KEYBOARD.selectedElement().selected.name === "Expression") {
+                KEYBOARD.press(13); // press Operation [Multiplication]
             }
 
-            else if (selected instanceof Operation) {
-                lowest_parenthesis.value.splice(KEYBOARD.selected[depth] + 1, 0, new SimpleFraction(key));
-                KEYBOARD.selected[depth] += 1;
-            }
-
-            else if (selected instanceof SimpleFraction) {
-                let value = selected.toString();
-                let newValue = value.slice(0, KEYBOARD.special_selection) + key + value.slice(KEYBOARD.special_selection);
-                lowest_parenthesis.value[KEYBOARD.selected[depth]] = new SimpleFraction(newValue);
-                KEYBOARD.special_selection += 1;
-            }
-
-            else if (selected instanceof Expression) {
-                if (KEYBOARD.special_selection === 1) {
-                    KEYBOARD.press(13);
-                    KEYBOARD.press(Number(type));
-                } else {
-                    KEYBOARD.press(13);
-                    KEYBOARD.selected[depth] -= 1;
-                    lowest_parenthesis.value.splice(KEYBOARD.selected[depth], 0, new SimpleFraction(key));
-                    KEYBOARD.special_selection = 1;
-                }
-            }
+            lowest_parenthesis.value.splice(KEYBOARD.selected[depth], 0, new SimpleFraction(key));
+            KEYBOARD.selected[depth] += 1;
         },
         "Expression": (data) => {
             let { key, type, lowest_parenthesis, depth, selected, parameters } = data;
@@ -93,58 +90,16 @@ HANDLER = {
 
             //Parenthesis Close
             else if (type === 11) {
-                if (KEYBOARD.selected[depth] >= lowest_parenthesis.value.length - 1) {
+                if (depth !== 0) {
                     KEYBOARD.selected.pop();
-                    KEYBOARD.special_selection = 1;
                 }
             }
         },
         "Operation": (data) => {
             let { key, type, lowest_parenthesis, depth, selected, parameters } = data;
-            if (selected === undefined) {
-                lowest_parenthesis.add(new Operation(key));
-                KEYBOARD.selected[depth] += 1;
-            }
-
-            else if (selected instanceof SimpleFraction) {
-                if (selected.length == KEYBOARD.special_selection) {
-                    lowest_parenthesis.value.splice(KEYBOARD.selected[depth] + 1, 0, new Operation(key));
-                    KEYBOARD.selected[depth] += 1;
-                    KEYBOARD.special_selection = 1;
-                }
-                
-                else if (KEYBOARD.special_selection === 0) {
-                    lowest_parenthesis.value.splice(KEYBOARD.selected[depth], 0, new Operation(key));
-                    KEYBOARD.special_selection = 1;
-                }
-
-                else {
-                    let value = selected.toString();
-                    let x = value.slice(0, KEYBOARD.special_selection);
-                    let y = value.slice(KEYBOARD.special_selection);
-
-                    lowest_parenthesis.value[KEYBOARD.selected[depth]] = y;
-                    lowest_parenthesis.value.splice(KEYBOARD.selected[depth], 0, new Operation(key));
-                    lowest_parenthesis.value.splice(KEYBOARD.selected[depth], 0, x);
-                    KEYBOARD.special_selection = 1;
-                    KEYBOARD.selected[depth] += 1;
-                }
-            }
             
-            else if (selected instanceof Operation) {
-                KEYBOARD.selected[depth] += 1;
-                lowest_parenthesis.value.splice(KEYBOARD.selected[depth], 0, new Operation(key));
-            }
-
-            else if (selected instanceof Expression) {
-                if (KEYBOARD.special_selection === 0) {
-                    lowest_parenthesis.value.splice(KEYBOARD.selected[depth], 0, new Operation(key));
-                    KEYBOARD.selected[depth] += 1;
-                } else {
-                    KEYBOARD.selected[depth] += 1;
-                    lowest_parenthesis.value.splice(KEYBOARD.selected[depth], 0, new Operation(key));
-                }
-            }
+            lowest_parenthesis.value.splice(KEYBOARD.selected[depth], 0, new Operation(key));
+            KEYBOARD.selected[depth] += 1;
         },
         "ComplexFraction": (data) => {
             let { key, type, lowest_parenthesis, depth, selected, parameters } = data;
@@ -156,70 +111,19 @@ HANDLER = {
         },
         "Delete": (data) => {
             let { key, type, lowest_parenthesis, depth, selected, parameters } = data;
-            if (selected === undefined && depth > 0) {
 
-                depth -= 1;
-                lowest_parenthesis = KEYBOARD.selectedElement(depth).lowest_parenthesis;
-                lowest_parenthesis.value.splice(KEYBOARD.selected[depth], 1);   
-                
-                KEYBOARD.selected[depth] -= KEYBOARD.selected[depth] > 0;
+            if (KEYBOARD.selectedElement().selected === undefined && depth !== 0) {
                 KEYBOARD.selected.pop();
-
-                KEYBOARD.special_selection = 1;
-
-            } else if (selected instanceof SimpleFraction) {
-                let value = selected.toString();
-                
-                if (KEYBOARD.special_selection === 0) {
-                    if (KEYBOARD.selected[depth] === 0) {
-                        return;
-                    }
-
-                    KEYBOARD.selected[depth] -= 1
-                    lowest_parenthesis.value.splice(KEYBOARD.selected[depth], 1);
-
-                    if (KEYBOARD.selected[depth] !== 0) {
-                        let value = lowest_parenthesis.value.splice(KEYBOARD.selected[depth], 1).toString();
-                        KEYBOARD.selected[depth] -= 1
-
-                        let selected = KEYBOARD.selectedElement().selected;
-                        KEYBOARD.special_selection = selected.length;
-
-                        lowest_parenthesis.value[KEYBOARD.selected[depth]] = new SimpleFraction(selected.toString() + value);
-                        }
-
-                } else if (value.length === 1) {
-                    lowest_parenthesis.value.splice(KEYBOARD.selected[depth], 1);
-                    KEYBOARD.selected[depth] -= KEYBOARD.selected[depth] >= 1;
-
-                    if (KEYBOARD.selected[depth] === 0) {
-                        KEYBOARD.special_selection = 0;
-                    }
-                } else {
-                    value = value.slice(0, KEYBOARD.special_selection - 1) + value.slice(KEYBOARD.special_selection);
-                    
-                    lowest_parenthesis.value[KEYBOARD.selected[depth]] = new SimpleFraction(value);
-                    KEYBOARD.special_selection -= 1;
-                }
-            } else if (selected instanceof Expression) {
-                KEYBOARD.selected.push(KEYBOARD.selectedElement().selected.value.length - 1);
+                KEYBOARD.selectedElement().lowest_parenthesis.value.splice(KEYBOARD.selected[depth - 1] - 1, 1);
+                KEYBOARD.selected[depth - 1] -= 1;
             }
-
-            else if (selected instanceof Operation) {
-                if (KEYBOARD.special_selection === 0) {
-                    HANDLER.press.Left(data);
-                } else {
-                    lowest_parenthesis.value.splice(KEYBOARD.selected[depth], 1);
-                    KEYBOARD.selected[depth] -= KEYBOARD.selected[depth] >= 1;
-
-                    let newSelected = lowest_parenthesis.value[KEYBOARD.selected[depth]];
-                    if (newSelected instanceof Operation || newSelected instanceof Expression) {
-                        KEYBOARD.special_selection = 1;
-                    } else if(newSelected instanceof SimpleFraction) {
-                        KEYBOARD.special_selection = newSelected.length;
-                    }
-                }
-
+            
+            else if (KEYBOARD.selectedElement().selected.name === "Expression") {
+                let length = KEYBOARD.selectedElement().selected.value.length;
+                KEYBOARD.selected.push(length);
+            } else {
+                lowest_parenthesis.value.splice(KEYBOARD.selected[depth] - 1, 1);
+                KEYBOARD.selected[depth] -= 1;
             }
         },
         "Clear": (data) => {
@@ -227,70 +131,42 @@ HANDLER = {
             EQUATION.left.value = [];
             EQUATION.right.value = [];
             KEYBOARD.selected = [0];
-            KEYBOARD.special_selection = 0;
         },
         "Left": (data) => {
             let { key, type, lowest_parenthesis, depth, selected, parameters } = data;
-            if (KEYBOARD.selected[depth] === 0 && KEYBOARD.special_selection == 0 && depth > 0) {
-                KEYBOARD.selected.pop();
-                KEYBOARD.special_selection = 0;
+            
+            if (KEYBOARD.selectedElement().selected !== undefined && KEYBOARD.selectedElement().selected.name === "Expression") {
+                let length = KEYBOARD.selectedElement().selected.value.length;
+                KEYBOARD.selected.push(length);
+                return;
             }
 
-            else if (selected instanceof SimpleFraction) {
-                KEYBOARD.special_selection -= 1;
+            KEYBOARD.selected[depth] -= 1;
 
-                if (KEYBOARD.special_selection < 0) {
-                    if (KEYBOARD.selected[depth] == 0) {
-                        KEYBOARD.special_selection = 0;
-                    } else {
-                        KEYBOARD.selected[depth] -= 1;
-
-                        if (lowest_parenthesis.value[KEYBOARD.selected[depth]].name == "Operation") {
-                            KEYBOARD.selected[depth] -= 1;
-                            KEYBOARD.special_selection = lowest_parenthesis.value[KEYBOARD.selected[depth]].length;
-                        }
-                    }
+            if (KEYBOARD.selected[depth] < 0) {
+                if (depth === 0) {
+                    KEYBOARD.selected[depth] = 0;
+                } else {
+                    KEYBOARD.selected.pop();
+                    KEYBOARD.selected[depth - 1] -= 1;
                 }
-            }
-
-            else if (selected instanceof Operation) {
-                if (KEYBOARD.selected[depth] === 0) {
-                    return;
-                }
-
-                let {lowest_parenthesis2, depth2, selected2} = KEYBOARD.selectedElement();
-                
-                KEYBOARD.selected[depth] -= 1;
-                KEYBOARD.special_selection = selected2.length;
             }
         },
         "Right": (data) => {
             let { key, type, lowest_parenthesis, depth, selected, parameters } = data;
 
-            if (KEYBOARD.selected[depth] === lowest_parenthesis.value.length - 1 && KEYBOARD.special_selection == lowest_parenthesis.value[lowest_parenthesis.value.length - 1].length  && depth > 0) {
-                KEYBOARD.selected.pop();
-                KEYBOARD.special_selection = 1;
-            }
+            KEYBOARD.selected[depth] += 1;
 
-            else if (selected instanceof SimpleFraction) {
-                if (selected.length <= KEYBOARD.special_selection) {
-                    if (++KEYBOARD.selected[depth] >= lowest_parenthesis.value.length) {
-                        KEYBOARD.selected[depth] -= 1;
-                    } else {
-                        KEYBOARD.special_selection = 1;
-                        KEYBOARD.selected[depth]++;
-                        KEYBOARD.special_selection = 0;
-                    }
-                } else {
-                    KEYBOARD.special_selection += 1;
-                }
-            } else if (selected instanceof Operation) {
-                KEYBOARD.selected[depth] += 1;
-            } else if (selected instanceof Expression) {
-                if (KEYBOARD.special_selection === 0) {
-                    KEYBOARD.selected.push(0);
-                    KEYBOARD.special_selection = 0;
-                }
+            if (depth !== 0 && KEYBOARD.selected[depth] >= lowest_parenthesis.value.length) {
+                KEYBOARD.selected.pop();
+            }
+            
+            else if (KEYBOARD.selectedElement().selected === undefined) {
+                KEYBOARD.selected[depth] -= 1;
+            }
+            
+            else if (KEYBOARD.selectedElement().selected.name === "Expression") {
+                KEYBOARD.selected.push(0);
             }
         }
     }
@@ -302,16 +178,15 @@ EQUATION = { left: new Expression(), right: new Expression(), active: "left" };
 KEYBOARD = {
     "active_expression": "left",
     "selected": [0],
-    "special_selection": 0,
     "encoding": "0123456789()^*/+-=".split("").concat(["FRACTION", "SOLVE", "DELETE", "CLEAR", "LEFT", "RIGHT"]),
     "selectedElement": (depth = KEYBOARD.selected.length - 1) => {
         let lowest_parenthesis = EQUATION[EQUATION.active];
 
         for (let i = 0; i < depth; i++) {
-            lowest_parenthesis = lowest_parenthesis.value[KEYBOARD.selected[i]];
+            lowest_parenthesis = lowest_parenthesis.value[KEYBOARD.selected[i] - 1];
         }
 
-        let selected = lowest_parenthesis.value[KEYBOARD.selected[depth]];
+        let selected = lowest_parenthesis.value[KEYBOARD.selected[depth] - 1];
         return { lowest_parenthesis, depth, selected };
     },
     "press": (event, parameters = {}) => {
@@ -361,6 +236,6 @@ addEventListener("keyup", event => {
     let button = KEYS.filter(element => element.dataset.keycode === event.key);
     button.forEach(button => button.click());
    
-    let _cursor = document.getElementById("cursor");
-    _cursor.value = String(KEYBOARD.selected) + " | " + KEYBOARD.special_selection;
+    //let _cursor = document.getElementById("cursor");
+    //_cursor.value = String(KEYBOARD.selected);
 })
