@@ -147,16 +147,16 @@ class Expression {
                     result = x.div(y);
                     break;
 
-                case 4: //Exponent (Not Implmented)
-                    break;
+                case 4: //Exponent
                     result = x.exp(y);
+                    break;
 
                 default:
                     break;
             }
 
             parent.value.splice(location[depth] - 1, 2);
-            parent.value[location[depth] - 1] = new SimpleFraction(result);
+            parent.value[location[depth] - 1] = result;
             return this.toString();
 
         } else {
@@ -212,7 +212,7 @@ class SimpleFraction {
     simplify(save = true) {
         let a = this.numerator;
         let b = this.denominator;
-
+    
         while(a.value.includes('.') || b.value.includes('.')) {
             a = a.mul(new Integer(10));
             b = b.mul(new Integer(10));
@@ -239,7 +239,7 @@ class SimpleFraction {
         let denominator = PMath.lcm(x.denominator, y.denominator);
         let numerator = x.numerator.mul(denominator.div(x.denominator)).add(y.numerator.mul(denominator.div(y.denominator)));
 
-        return new SimpleFraction(numerator, denominator);
+        return new SimpleFraction(numerator, denominator).simplify(false);
     }
 
     sub(fraction) {
@@ -249,7 +249,7 @@ class SimpleFraction {
         let denominator = PMath.lcm(x.denominator, y.denominator);
         let numerator = x.numerator.mul(denominator.div(x.denominator)).sub(y.numerator.mul(denominator.div(y.denominator)));
 
-        return new SimpleFraction(numerator, denominator);
+        return new SimpleFraction(numerator, denominator).simplify(false);
     }
 
     mul(fraction) {
@@ -259,17 +259,19 @@ class SimpleFraction {
         let numerator = x.numerator.mul(y.numerator);
         let denominator = x.denominator.mul(y.denominator);
 
-        return new SimpleFraction(numerator, denominator).simplify();
+        return new SimpleFraction(numerator, denominator).simplify(false);
     }
 
     div(fraction) {
         let x = this.simplify(false);
         let y = fraction.simplify(false);
 
+        console
+
         let numerator = x.numerator.mul(y.denominator);
         let denominator = x.denominator.mul(y.numerator);
 
-        return new SimpleFraction(numerator, denominator).simplify();
+        return new SimpleFraction(numerator, denominator).simplify(false);
     }
 
     exp(fraction) {
@@ -279,7 +281,7 @@ class SimpleFraction {
         let numerator = x.numerator.exp(y.numerator).mul(y.denominator.exp(x.denominator));
         let denominator = x.denominator.exp(y.numerator).mul(y.denominator.exp(x.numerator));
 
-        return new SimpleFraction(numerator, denominator).simplify();
+        return new SimpleFraction(numerator, denominator).simplify(false);
     }
 
     con(fraction) {
@@ -288,7 +290,7 @@ class SimpleFraction {
 
         let numerator = x.numerator.con(y.numerator);
 
-        return new SimpleFraction(numerator, 1).simplify();
+        return new SimpleFraction(numerator, 1).simplify(false);
     }
 }
 
@@ -301,8 +303,3 @@ class ComplexFraction {
 
     toString = () => `(${this.numerator} / ${this.denominator})`;
 }
-
-a = new SimpleFraction(2, 1);
-b = new SimpleFraction(3, 1);
-
-result = a.div(b);

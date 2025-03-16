@@ -31,7 +31,7 @@ function solve(expression) {
         result += t1 + " " + t2 + "\n";
     }
 
-    let copy = expression.copy();
+    copy = expression.copy();
 
     copy = fixExpression(copy);
 
@@ -44,7 +44,9 @@ function solve(expression) {
     while (copy.next().length !== 0) {
         log(`${steps}:`, copy.step());
         steps++;
+        console.log(copy);
     }
+
 
     return result;
 }
@@ -71,20 +73,15 @@ HANDLER = {
             
             //Parenthesis Open
             if (type === 10) {
-                if (selected == undefined) {
-                    lowest_parenthesis.add(new Expression());
-                    KEYBOARD.selected.push(0);
-                }
-
-                else if (selected instanceof SimpleFraction) {
-                    KEYBOARD.press(13); // press Operation [Multiplication]
-                    KEYBOARD.press(10); // press Expression [Open Parenthesis]
-                }
-
-                else if (selected instanceof Operation) {
+                if (selected instanceof Operation || selected == undefined) {
                     lowest_parenthesis.value.splice(KEYBOARD.selected[depth] + 1, 0, new Expression());
                     KEYBOARD.selected[depth] += 1;
                     KEYBOARD.selected.push(0);
+                }
+
+                else if (selected instanceof SimpleFraction || selected instanceof Expression) {
+                    KEYBOARD.press(13); // press Operation [Multiplication]
+                    KEYBOARD.press(10); // press Expression [Open Parenthesis]
                 }
             }
 
@@ -232,10 +229,10 @@ KEYBOARD = {
 KEYS.forEach(button => button.addEventListener("click", KEYBOARD.press));
 
 
-addEventListener("keyup", event => {
+addEventListener("keydown", event => {
     let button = KEYS.filter(element => element.dataset.keycode === event.key);
     button.forEach(button => button.click());
    
-    //let _cursor = document.getElementById("cursor");
-    //_cursor.value = String(KEYBOARD.selected);
+    let _cursor = document.getElementById("cursor");
+    _cursor.value = String(KEYBOARD.selected);
 })
