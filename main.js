@@ -185,7 +185,7 @@ HANDLER = {
             setTimeout(() => {
                 document.querySelector(".computer").classList.add("display");
                 
-                //HANDLER.cursor.hide();
+                HANDLER.cursor.hide();
                 
                 const parent = document.getElementById("input");
                 let expression = EXPRESSION.copy();
@@ -215,6 +215,7 @@ HANDLER = {
                         clearInterval(id);
                         HANDLER.press.Clear();
                         HANDLER.display("Error", true);
+                        HANDLER.cursor.show();
                         return;
                     }
 
