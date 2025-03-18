@@ -1,52 +1,56 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="style.css">
     <meta charset="UTF-8">
-    <title>Math View</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Animated Calculator</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="keyboard">
-        <button data-value="1" data-keycode="1">1</button>
-        <button data-value="2" data-keycode="2">2</button>
-        <button data-value="3" data-keycode="3">3</button>
-        <button data-value="+" data-keycode="+">+</button><br>
-        <button data-value="4" data-keycode="4">4</button>
-        <button data-value="5" data-keycode="5">5</button>
-        <button data-value="6" data-keycode="6">6</button>
-        <button data-value="-" data-keycode="-">-</button><br>
-        <button data-value="7" data-keycode="7">7</button>
-        <button data-value="8" data-keycode="8">8</button>
-        <button data-value="9" data-keycode="9">9</button>
-        <button data-value="*" data-keycode="*">×</button><br>
-        <button data-value="0" data-keycode="0">0</button>
-        <button data-value="(" data-keycode="(">(</button>
-        <button data-value=")" data-keycode=")">)</button>
-        <button data-value="/" data-keycode="/">/</button><br>
-        <button data-value="SOLVE" data-keycode="Enter">SOLVE</button><br>
-        <button data-value="DELETE" data-keycode="Backspace">DELETE</button>
-        <button data-value="CLEAR" data-keycode="q">CLEAR</button><br>
-        <button data-value="LEFT" data-keycode="ArrowLeft"><</button>
-        <button data-value="RIGHT" data-keycode="ArrowRight">></button>
+    <div class="computer">
+        <div class="screen">
+            <div class="main">
+                <div class="center_line">
+                    <span id="input"><span selected></span></span>
+                </div>
+            </div>
+        </div>
+        <div class="keyboard">
+            <div class="main">
+                <div class="number">
+                    <button data-value="1" data-keycode="1">1</button>
+                    <button data-value="2" data-keycode="2">2</button>
+                    <button data-value="3" data-keycode="3">3</button>
+                    <button data-value="4" data-keycode="4">4</button>
+                    <button data-value="5" data-keycode="5">5</button>
+                    <button data-value="6" data-keycode="6">6</button>
+                    <button data-value="7" data-keycode="7">7</button>
+                    <button data-value="8" data-keycode="8">8</button>
+                    <button data-value="9" data-keycode="9">9</button>
+                    <button data-value="0" data-keycode="0">0</button>
+                </div>
+
+                <div class="operation">
+                    <button data-value="+" data-keycode="+">+</button>
+                    <button data-value="-" data-keycode="-">-</button>
+                    <button data-value="*" data-keycode="*">×</button>
+                    <button data-value="/" data-keycode="/">÷</button>
+                    <button data-value="(" data-keycode="(">(</button>
+                    <button data-value=")" data-keycode=")">)</button>
+                </div>
+                
+                <div class="command">
+                    <button data-value="SOLVE" data-keycode="Enter">=</button>
+                    <button data-value="DELETE" data-keycode="Backspace">⌫</button>
+                    <button data-value="CLEAR" data-keycode="q">↺</button>
+                    <button data-value="LEFT" data-keycode="ArrowLeft">⇦</button>
+                    <button data-value="RIGHT" data-keycode="ArrowRight">⇨</button>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <br>
-
-    <div>
-        <span>Input: </span><br>
-        <textarea type="text" id="output" disabled style="border: black solid 1px; color: black;"></textarea><br>
-        Cursor: <input type="text" id="cursor" disabled style="border: black solid 1px; color: black;"><br>
-    </div>
-
-    <br><br>
-
-    <div>
-        <span>Output</span><br>
-        <textarea id="console" disabled style="border: black solid 1px; color: black; width: 211px; height: 178px;"></textarea>
-    </div>
-
-    <br>
-
+    
+    <script src="pmath.js"></script>
+    <script src="main.js"></script>
 </body>
-<script src="pmath.js"></script>
-<script src="main.js"></script>
 </html>

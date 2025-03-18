@@ -1,0 +1,166 @@
+body {
+    background: #111111;
+    overflow: hidden;
+    margin: 0px;
+}
+
+.computer {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    flex-direction: column;
+}
+
+.screen {
+    width: 100vw;
+    height: 70vh;
+    display: grid;
+    place-items: center;
+    transition: height 0.5s ease-in;
+}
+
+.computer.display .screen {
+    height: 100vh;
+}
+
+.screen .main {
+    width: 80%;
+    height: 80%;
+    background: #292929;
+    box-shadow:
+        inset 0px 0px 0px 10px #000000,
+        inset 0px 0px 0px 12px #1f1f1f,
+        0px 0px 100px 0px #3f3f3f;
+    border-radius: calc(1vw + 1vh);
+}
+
+.keyboard {
+    width: 100vw;
+    height: 30vh;
+    display: grid;
+    place-items: end center;
+    transition: all 0.5s ease-in;
+    opacity: 1;
+}
+
+.computer.display .keyboard {
+    height: 0vh;
+    opacity: 0;
+}
+
+.keyboard .main {
+    width: 80%;
+    height: 90%;
+    background: gray;
+    border-top-left-radius: calc(1vw + 1vh);
+    border-top-right-radius: calc(1vw + 1vh);
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    align-items: start;
+    place-items: center;
+    box-shadow: inset 0px 0px 0px 3px #000000;
+}
+
+.keyboard button {
+    border-radius: calc(0.2vw + 0.2vh);
+    font-size: calc(1vw + 1vh);
+    width: calc(2vw + 2vh);
+    height: calc(2vw + 2vh);
+    margin: calc(0.1vw + 0.1vh);
+    background: #111;
+    color: #eee;
+    cursor: pointer;
+}
+
+.keyboard button.pressed {
+    border-image: linear-gradient(
+        to top left, 
+        #545454 49%, 
+        #000 50%
+    ) 1;
+}
+
+.keyboard .main .number {
+    display: grid;
+    justify-content: center;
+    grid-template-columns: repeat(5, max-content);
+    background: #222;
+    box-shadow: 0px 0px 0px 10px #222;
+    border-radius: calc(0.2vw + 0.2vh);
+}
+
+.keyboard .main .operation, 
+.keyboard .main .command {
+    display: grid;
+    justify-content: center;
+    grid-template-columns: repeat(3, max-content);
+    background: #222;
+    box-shadow: 0px 0px 0px 10px #222;
+    border-radius: calc(0.2vw + 0.2vh);
+}
+
+.computer .main {
+    font-size: calc(1.5vw + 1.5vh);
+    font-family: Arial;
+    color: #eee;
+    display: grid;
+    place-items: center;
+}
+
+.center_line {
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+/* Ensure spans within #input take full height */
+#input {
+    height: 100%;
+}
+
+#input span {
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
+}
+
+span[data-name="Operation"] {
+    margin-left: calc(0.5vw + 0.5vh);
+    margin-right: calc(0.5vw + 0.5vh);
+}
+
+span[data-name="Expression"]::before {
+    content: "(";
+    display: inline-block;
+}
+
+span[data-name="Expression"]::after {
+    content: ")";
+    display: inline-block;
+}
+
+#input span[Selected], span[data-name="Expression"][InSelected]::before {
+    border-right: solid white 1px;
+    animation: blink 0.2s ease-in infinite alternate;
+}
+
+@keyframes blink {
+    0% { border-right: solid white 1px; }
+    100% { border-right: solid #292929 1px; }
+}
+
+span.operationAnimation {
+    background: #292929;
+    animation-iteration-count: 1;
+    overflow: hidden;
+    transition: width 0.3s ease-in;
+    animation: fade 0.8s ease-in;
+}
+
+
+@keyframes fade {
+    0% { background: #292929; }
+    20% { background: #eee; }
+    90% { background: #eee; }
+    100% { background: #292929; }
+}
