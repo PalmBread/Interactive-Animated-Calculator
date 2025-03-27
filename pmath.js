@@ -118,6 +118,7 @@ class Expression {
                     break;
                 case 3:
                     result = x.div(y);
+                    if (result == "Error") { return "Error"; } //divide by zero error
                     break;
                 case 4:
                     result = x.exp(y);
@@ -218,6 +219,7 @@ class SimpleFraction {
         return new SimpleFraction(numerator, denominator).simplify(false);
     }
     div(fraction) {
+        if (fraction.numerator == 0) { return "Error"; }
         let x = this.simplify(false);
         let y = fraction.simplify(false);
         let numerator = x.numerator.mul(y.denominator);

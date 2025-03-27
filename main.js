@@ -183,6 +183,9 @@ HANDLER = {
         },
         "Solve": (data) => {
             setTimeout(() => {
+                STATE = "solve";
+
+                document.querySelectorAll(".keyboard button").forEach(button => button.disabled = true);
                 document.querySelector(".computer").classList.add("display");
                 
                 HANDLER.cursor.hide();
@@ -193,6 +196,15 @@ HANDLER = {
     
                 HANDLER.display(expression, true);
 
+                let quit = () => {
+                    document.querySelectorAll(".keyboard button").forEach(button => button.disabled = false);
+                    document.getElementById("disable").disabled = true;
+                    clearInterval(id);
+                    HANDLER.press.Clear();
+                    HANDLER.cursor.show();
+                    STATE = "input";
+                }
+
 
                 let id = setInterval(() => {
                     HANDLER.display(expression, true);
@@ -201,9 +213,7 @@ HANDLER = {
                     
                     if (next.length === 0) {
                         document.querySelector(".computer.display").classList.remove("display");
-                        clearInterval(id);
-                        HANDLER.press.Clear();
-                        return;
+                        return quit();
                     }
                     
                     next = HANDLER.find(parent, next);
@@ -211,12 +221,14 @@ HANDLER = {
                     let result = expression.step(true);
 
                     if (result === "Error") {
-                        document.querySelector(".computer.display").classList.remove("display");
-                        clearInterval(id);
-                        HANDLER.press.Clear();
-                        HANDLER.display("Error", true);
-                        HANDLER.cursor.show();
-                        return;
+                        HANDLER.animate(next, result);
+
+                        setTimeout(() => {
+                            document.querySelector(".computer.display").classList.remove("display");
+                            HANDLER.display("Error", true);
+                        }, 400)
+
+                        return quit();
                     }
 
                     HANDLER.animate(next, result);
@@ -280,6 +292,8 @@ HANDLER = {
 KEYS = Array.from(document.querySelectorAll("div.main button"));
 EXPRESSION = new Expression();
 
+STATE = "input";
+
 KEYBOARD = {
     "selected": [0],
     "encoding": "0123456789()^*/+-=".split("").concat(["FRACTION", "SOLVE", "DELETE", "CLEAR", "LEFT", "RIGHT"]),
@@ -294,6 +308,9 @@ KEYBOARD = {
         return { lowest_parenthesis, depth, selected };
     },
     "press": (event, parameters = {}) => {
+
+        if (STATE != "input") { return; }
+
         let key, type;
 
         if (typeof event === "number") {

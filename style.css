@@ -1,3 +1,7 @@
+* {
+    user-select: none;
+}
+
 body {
     background: #111111;
     overflow: hidden;
@@ -78,6 +82,10 @@ body {
         #545454 49%, 
         #000 50%
     ) 1;
+}
+
+.keyboard button:disabled {
+    color: #555;
 }
 
 .keyboard .main .number {
