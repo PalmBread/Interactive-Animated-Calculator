@@ -76,6 +76,10 @@ body {
     cursor: pointer;
 }
 
+.keyboard button:disabled {
+    cursor: not-allowed;
+}
+
 .keyboard button.pressed {
     border-image: linear-gradient(
         to top left, 
